@@ -23,7 +23,7 @@ def test_es_example():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
@@ -64,7 +64,7 @@ def test_es_return_sample():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
@@ -168,7 +168,7 @@ def test_min_semivariance():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
@@ -196,7 +196,7 @@ def test_min_semivariance_different_solver():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     test_performance = (0.10258693150198975, 0.08495982152369484, 0.9720704448391136)
     np.testing.assert_allclose(
         es.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
@@ -238,7 +238,7 @@ def test_min_semivariance_L2_reg():
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
+    assert all(i >= 0 for i in weights.values())
 
     ef2 = setup_efficient_semivariance()
     ef2.min_semivariance()
@@ -297,10 +297,7 @@ def test_min_semivariance_sector_constraints():
     weights = es.min_semivariance()
 
     for sector in list(set().union(sector_upper, sector_lower)):
-        sector_sum = 0
-        for t, v in weights.items():
-            if sector_mapper[t] == sector:
-                sector_sum += v
+        sector_sum = sum(v for t, v in weights.items() if sector_mapper[t] == sector)
         assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
         assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
@@ -375,7 +372,7 @@ def test_max_quadratic_utility_L2_reg():
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
+    assert all(i >= 0 for i in weights.values())
     np.testing.assert_allclose(
         es.portfolio_performance(),
         (0.11717839698599568, 0.11286470279298752, 0.8610167269410781),
@@ -401,7 +398,7 @@ def test_efficient_risk():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
@@ -481,7 +478,7 @@ def test_efficient_return():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         es.portfolio_performance(),
@@ -521,7 +518,7 @@ def test_efficient_return_L2_reg():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(es.tickers)
     np.testing.assert_almost_equal(es.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         es.portfolio_performance(),
         (0.25, 0.12068369208695134, 1.9058084487031388),

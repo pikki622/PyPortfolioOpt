@@ -164,17 +164,15 @@ class CLA(base_optimizer.BaseOptimizer):
         # 2) bi
         if type(bi) == list:
             bi = self._compute_bi(c, bi)
-        # 3) Lambda
         if wB is None:
             # All free assets
             return float((c4[i] - c1 * bi) / c), bi
-        else:
-            onesB = np.ones(wB.shape)
-            l1 = np.dot(onesB.T, wB)
-            l2 = np.dot(covarF_inv, covarFB)
-            l3 = np.dot(l2, wB)
-            l2 = np.dot(onesF.T, l3)
-            return float(((1 - l1 + l2) * c4[i] - c1 * (bi + l3[i])) / c), bi
+        onesB = np.ones(wB.shape)
+        l1 = np.dot(onesB.T, wB)
+        l2 = np.dot(covarF_inv, covarFB)
+        l3 = np.dot(l2, wB)
+        l2 = np.dot(onesF.T, l3)
+        return float(((1 - l1 + l2) * c4[i] - c1 * (bi + l3[i])) / c), bi
 
     def _get_matrices(self, f):
         # Slice covarF,covarFB,covarB,meanF,meanB,wF,wB
@@ -210,10 +208,8 @@ class CLA(base_optimizer.BaseOptimizer):
     def _purge_num_err(self, tol):
         # Purge violations of inequality constraints (associated with ill-conditioned cov matrix)
         i = 0
-        while True:
+        while i != len(self.w):
             flag = False
-            if i == len(self.w):
-                break
             if abs(sum(self.w[i]) - 1) > tol:
                 flag = True
             else:
@@ -243,9 +239,7 @@ class CLA(base_optimizer.BaseOptimizer):
             w = self.w[i]
             mu = np.dot(w.T, self.mean)[0, 0]
             j, repeat = i + 1, False
-            while True:
-                if j == len(self.w):
-                    break
+            while j != len(self.w):
                 w = self.w[j]
                 mu_ = np.dot(w.T, self.mean)[0, 0]
                 if mu < mu_:
@@ -274,7 +268,7 @@ class CLA(base_optimizer.BaseOptimizer):
         f1 = sign * obj(x1, *args)
         f2 = sign * obj(x2, *args)
         # Loop
-        for i in range(numIter):
+        for _ in range(numIter):
             if f1 > f2:
                 a = x1
                 x1 = x2
@@ -287,10 +281,7 @@ class CLA(base_optimizer.BaseOptimizer):
                 f2 = f1
                 x1 = r * a + c * b
                 f1 = sign * obj(x1, *args)
-        if f1 < f2:
-            return x1, sign * f1
-        else:
-            return x2, sign * f2
+        return (x1, sign * f1) if f1 < f2 else (x2, sign * f2)
 
     def _eval_sr(self, a, w0, w1):
         # Evaluate SR of the portfolio within the convex combination
@@ -312,14 +303,12 @@ class CLA(base_optimizer.BaseOptimizer):
             if len(f) > 1:
                 covarF, covarFB, meanF, wB = self._get_matrices(f)
                 covarF_inv = np.linalg.inv(covarF)
-                j = 0
-                for i in f:
+                for j, i in enumerate(f):
                     l, bi = self._compute_lambda(
                         covarF_inv, covarFB, meanF, wB, j, [self.lB[i], self.uB[i]]
                     )
                     if CLA._infnone(l) > CLA._infnone(l_in):
                         l_in, i_in, bi_in = l, i, bi
-                    j += 1
             # 2) case b): Free one bounded weight
             l_out = None
             if len(f) < self.mean.shape[0]:

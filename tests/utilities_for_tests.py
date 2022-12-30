@@ -27,7 +27,7 @@ def get_benchmark_data():
 
 
 def get_market_caps():
-    mcaps = {
+    return {
         "GOOG": 927e9,
         "AAPL": 1.19e12,
         "FB": 574e9,
@@ -49,7 +49,6 @@ def get_market_caps():
         "JPM": 422e9,
         "SBUX": 102e9,
     }
-    return mcaps
 
 
 def setup_efficient_frontier(
@@ -153,6 +152,4 @@ def simple_ef_weights(expected_returns, cov_matrix, target_return, weights_sum):
     )
     y = np.block([[np.zeros(r.shape)], [target_return], [weights_sum]])
     x = np.linalg.inv(m) @ y
-    # Weights are all but the last 2 elements, which are the lambdas.
-    w = x.flatten()[:-2]
-    return w
+    return x.flatten()[:-2]

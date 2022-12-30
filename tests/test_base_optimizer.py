@@ -41,8 +41,8 @@ def test_custom_bounds_different_values():
         *setup_efficient_frontier(data_only=True), weight_bounds=bounds
     )
     ef.min_volatility()
-    assert (0.01 <= ef.weights[::2]).all() and (ef.weights[::2] <= 0.13).all()
-    assert (0.02 <= ef.weights[1::2]).all() and (ef.weights[1::2] <= 0.11).all()
+    assert (ef.weights[::2] >= 0.01).all() and (ef.weights[::2] <= 0.13).all()
+    assert (ef.weights[1::2] >= 0.02).all() and (ef.weights[1::2] <= 0.11).all()
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
 
     bounds = ((0.01, 0.13), (0.02, 0.11)) * 10
@@ -140,7 +140,7 @@ def test_clean_weights():
     assert clean_number_tiny_weights == number_tiny_weights
     #  Check rounding
     cleaned_weights_str_length = [len(str(i)) for i in cleaned_weights]
-    assert all([length == 7 or length == 3 for length in cleaned_weights_str_length])
+    assert all(length in [7, 3] for length in cleaned_weights_str_length)
 
 
 def test_clean_weights_short():

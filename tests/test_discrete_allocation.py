@@ -51,9 +51,7 @@ def test_greedy_portfolio_allocation():
         "GOOG": 1,
     }
 
-    total = 0
-    for ticker, num in allocation.items():
-        total += num * latest_prices[ticker]
+    total = sum(num * latest_prices[ticker] for ticker, num in allocation.items())
     np.testing.assert_almost_equal(total + leftover, 10000, decimal=4)
 
     # Cover the verbose parameter,
@@ -240,31 +238,7 @@ def test_lp_portfolio_allocation():
     da = DiscreteAllocation(w, latest_prices, short_ratio=0.3)
     allocation, leftover = da.lp_portfolio()
 
-    #  Gives differnt answers on different machines
-    # assert allocation == {
-    #     "AMD": 1,
-    #     "GOOG": 1,
-    #     "AAPL": 4,
-    #     "FB": 12,
-    #     "BABA": 4,
-    #     "BBY": 1,
-    #     "MA": 20,
-    #     "PFE": 54,
-    #     "SBUX": 1,
-    # } or allocation == {
-    #     "GOOG": 1,
-    #     "AAPL": 4,
-    #     "FB": 12,
-    #     "BABA": 4,
-    #     "BBY": 1,
-    #     "MA": 20,
-    #     "PFE": 54,
-    #     "SBUX": 1,
-    # }
-
-    total = 0
-    for ticker, num in allocation.items():
-        total += num * latest_prices[ticker]
+    total = sum(num * latest_prices[ticker] for ticker, num in allocation.items())
     np.testing.assert_almost_equal(total + leftover, 10000, decimal=4)
 
     # # Cover the verbose parameter,
@@ -404,21 +378,7 @@ def test_lp_portfolio_allocation_different_params():
     )
     allocation, leftover = da.lp_portfolio()
 
-    # assert allocation == {
-    #     "GOOG": 3,
-    #     "AAPL": 32,
-    #     "FB": 99,
-    #     "BABA": 34,
-    #     "AMZN": 2,
-    #     "BBY": 15,
-    #     "MA": 164,
-    #     "PFE": 438,
-    #     "SBUX": 15,
-    # }
-
-    total = 0
-    for ticker, num in allocation.items():
-        total += num * latest_prices[ticker]
+    total = sum(num * latest_prices[ticker] for ticker, num in allocation.items())
     np.testing.assert_almost_equal(total + leftover, 80000, decimal=4)
 
 

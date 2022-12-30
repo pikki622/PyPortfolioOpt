@@ -95,7 +95,7 @@ def test_min_volatility():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -109,7 +109,7 @@ def test_min_volatility_different_solver():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     test_performance = (0.150567, 0.159150, 0.820403)
     np.testing.assert_allclose(ef.portfolio_performance(), test_performance, atol=1e-5)
 
@@ -131,7 +131,7 @@ def test_min_volatility_no_rets():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_almost_equal(ef.portfolio_performance()[1], 0.15915084514118694)
 
 
@@ -180,7 +180,7 @@ def test_min_volatility_L2_reg():
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
+    assert all(i >= 0 for i in weights.values())
 
     ef2 = setup_efficient_frontier()
     ef2.min_volatility()
@@ -315,10 +315,7 @@ def test_min_volatility_sector_constraints():
     weights = ef.min_volatility()
 
     for sector in list(set().union(sector_upper, sector_lower)):
-        sector_sum = 0
-        for t, v in weights.items():
-            if sector_mapper[t] == sector:
-                sector_sum += v
+        sector_sum = sum(v for t, v in weights.items() if sector_mapper[t] == sector)
         assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
         assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
@@ -407,7 +404,7 @@ def test_max_sharpe_long_only():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
 
     np.testing.assert_allclose(
         ef.portfolio_performance(),
@@ -429,8 +426,8 @@ def test_max_sharpe_long_weight_bounds():
         *setup_efficient_frontier(data_only=True), weight_bounds=bounds
     )
     ef.max_sharpe()
-    assert (0.01 <= ef.weights[::2]).all() and (ef.weights[::2] <= 0.13).all()
-    assert (0.02 <= ef.weights[1::2]).all() and (ef.weights[1::2] <= 0.11).all()
+    assert (ef.weights[::2] >= 0.01).all() and (ef.weights[::2] <= 0.13).all()
+    assert (ef.weights[1::2] >= 0.02).all() and (ef.weights[1::2] <= 0.11).all()
 
 
 def test_max_sharpe_explicit_bound():
@@ -478,7 +475,7 @@ def test_max_sharpe_L2_reg():
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
+    assert all(i >= 0 for i in weights.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.2516854357026833, 0.22043282695478603, 1.051047790401043),
@@ -647,20 +644,17 @@ def test_max_sharpe_sector_constraints_manual():
     sector_lower = {"utility": 0.01, "fig": 0.02, "airline": 0.01}
 
     ef = setup_efficient_frontier()
-    for sector in sector_upper:
+    for sector, value in sector_upper.items():
         is_sector = [sector_mapper[t] == sector for t in ef.tickers]
-        ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
-    for sector in sector_lower:
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= value)
+    for sector, value_ in sector_lower.items():
         is_sector = [sector_mapper[t] == sector for t in ef.tickers]
-        ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= value_)
 
     weights = ef.max_sharpe()
 
     for sector in list(set().union(sector_upper, sector_lower)):
-        sector_sum = 0
-        for t, v in weights.items():
-            if sector_mapper[t] == sector:
-                sector_sum += v
+        sector_sum = sum(v for t, v in weights.items() if sector_mapper[t] == sector)
         assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
         assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
@@ -704,10 +698,7 @@ def test_max_sharpe_sector_constraints_auto():
     weights = ef.max_sharpe()
 
     for sector in list(set().union(sector_upper, sector_lower)):
-        sector_sum = 0
-        for t, v in weights.items():
-            if sector_mapper[t] == sector:
-                sector_sum += v
+        sector_sum = sum(v for t, v in weights.items() if sector_mapper[t] == sector)
         assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
         assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
@@ -748,20 +739,17 @@ def test_efficient_risk_sector_constraints_manual():
 
     ef = setup_efficient_frontier()
 
-    for sector in sector_upper:
+    for sector, value in sector_upper.items():
         is_sector = [sector_mapper[t] == sector for t in ef.tickers]
-        ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= sector_upper[sector])
-    for sector in sector_lower:
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) <= value)
+    for sector, value_ in sector_lower.items():
         is_sector = [sector_mapper[t] == sector for t in ef.tickers]
-        ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= sector_lower[sector])
+        ef.add_constraint(lambda w: cp.sum(w[is_sector]) >= value_)
 
     weights = ef.efficient_risk(0.19)
 
     for sector in list(set().union(sector_upper, sector_lower)):
-        sector_sum = 0
-        for t, v in weights.items():
-            if sector_mapper[t] == sector:
-                sector_sum += v
+        sector_sum = sum(v for t, v in weights.items() if sector_mapper[t] == sector)
         assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
         assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
@@ -803,10 +791,7 @@ def test_efficient_risk_sector_constraints_auto():
     ef.add_sector_constraints(sector_mapper, sector_lower, sector_upper)
     weights = ef.efficient_risk(0.19)
     for sector in list(set().union(sector_upper, sector_lower)):
-        sector_sum = 0
-        for t, v in weights.items():
-            if sector_mapper[t] == sector:
-                sector_sum += v
+        sector_sum = sum(v for t, v in weights.items() if sector_mapper[t] == sector)
         assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
         assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
@@ -874,7 +859,7 @@ def test_max_quadratic_utility_L2_reg():
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
+    assert all(i >= 0 for i in weights.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.19774277217586125, 0.2104822672707046, 0.8444548535162986),
@@ -905,7 +890,7 @@ def test_efficient_risk():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.2552422849133517, 0.19, 1.2381172871434818),
@@ -984,7 +969,7 @@ def test_efficient_risk_L2_reg():
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in weights.values()])
+    assert all(i >= 0 for i in weights.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.1931352562313653, 0.18999999989010993, 0.9112381912184281),
@@ -1061,7 +1046,7 @@ def test_efficient_return():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (target_return, 0.18723269942026335, 1.2284179030274036),
@@ -1097,7 +1082,7 @@ def test_efficient_return_many_values():
     for target_return in np.arange(0.25, 0.28, 0.01):
         ef.efficient_return(target_return)
         np.testing.assert_almost_equal(ef.weights.sum(), 1)
-        assert all([i >= 0 for i in ef.weights])
+        assert all(i >= 0 for i in ef.weights)
         mean_return = ef.portfolio_performance()[0]
         np.testing.assert_allclose(target_return, mean_return)
 
@@ -1158,7 +1143,7 @@ def test_efficient_return_L2_reg():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.25, 0.20961660883459776, 1.0972412981906703)
     )
@@ -1232,7 +1217,7 @@ def test_max_sharpe_semicovariance():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.2762965426962885, 0.07372667096108301, 3.476307004714425),
@@ -1268,7 +1253,7 @@ def test_min_volatilty_shrunk_L2_reg():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.17358178582309983, 0.19563960638632416, 0.7850239972361532),
@@ -1285,7 +1270,7 @@ def test_efficient_return_shrunk():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(), (0.22, 0.08892163937693882, 2.2491713085967766)
     )
@@ -1299,7 +1284,7 @@ def test_max_sharpe_exp_cov():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.33700887443850647, 0.1807332515488447, 1.7540152225548384),
@@ -1315,7 +1300,7 @@ def test_min_volatility_exp_cov_L2_reg():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(ef.tickers)
     np.testing.assert_almost_equal(ef.weights.sum(), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
     np.testing.assert_allclose(
         ef.portfolio_performance(),
         (0.1829496087575576, 0.17835412793427002, 0.9136295898775636),

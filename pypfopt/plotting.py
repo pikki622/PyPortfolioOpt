@@ -8,6 +8,7 @@ Currently implemented:
   - ``plot_efficient_frontier`` – plot the efficient frontier from an EfficientFrontier or CLA object
   - ``plot_weights`` - bar chart of weights
 """
+
 import copy
 import numpy as np
 from . import risk_models, exceptions
@@ -19,7 +20,7 @@ try:
     import matplotlib.pyplot as plt
 
     plt.style.use("seaborn-deep")
-except (ModuleNotFoundError, ImportError):  # pragma: no cover
+except ImportError:
     raise ImportError("Please install matplotlib via pip or poetry")
 
 
@@ -34,7 +35,7 @@ def _plot_io(**kwargs):
     :param showfig: whether to plt.show() the figure, defaults to False
     :type showfig: bool, optional
     """
-    filename = kwargs.get("filename", None)
+    filename = kwargs.get("filename")
     showfig = kwargs.get("showfig", False)
     dpi = kwargs.get("dpi", 300)
 

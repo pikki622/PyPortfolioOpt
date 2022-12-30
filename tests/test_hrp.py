@@ -36,7 +36,7 @@ def test_hrp_portfolio():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(df.columns)
     np.testing.assert_almost_equal(sum(w.values()), 1)
-    assert all([i >= 0 for i in w.values()])
+    assert all(i >= 0 for i in w.values())
 
 
 def test_portfolio_performance():

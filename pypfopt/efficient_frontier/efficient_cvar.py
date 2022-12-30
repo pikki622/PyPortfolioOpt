@@ -151,8 +151,7 @@ class EfficientCVaR(EfficientFrontier):
         :return: asset weights for the optimal portfolio
         :rtype: OrderedDict
         """
-        update_existing_parameter = self.is_parameter_defined("target_return")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("target_return"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_return", target_return)
         else:
@@ -189,8 +188,7 @@ class EfficientCVaR(EfficientFrontier):
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
         """
-        update_existing_parameter = self.is_parameter_defined("target_cvar")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("target_cvar"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_cvar", target_cvar)
         else:

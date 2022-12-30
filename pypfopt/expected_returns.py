@@ -49,11 +49,11 @@ def returns_from_prices(prices, log_returns=False):
     :return: (daily) returns
     :rtype: pd.DataFrame
     """
-    if log_returns:
-        returns = np.log(1 + prices.pct_change()).dropna(how="all")
-    else:
-        returns = prices.pct_change().dropna(how="all")
-    return returns
+    return (
+        np.log(1 + prices.pct_change()).dropna(how="all")
+        if log_returns
+        else prices.pct_change().dropna(how="all")
+    )
 
 
 def prices_from_returns(returns, log_returns=False):
@@ -69,10 +69,7 @@ def prices_from_returns(returns, log_returns=False):
     :return: (daily) pseudo-prices.
     :rtype: pd.DataFrame
     """
-    if log_returns:
-        ret = np.exp(returns)
-    else:
-        ret = 1 + returns
+    ret = np.exp(returns) if log_returns else 1 + returns
     ret.iloc[0] = 1  # set first day pseudo-price
     return ret.cumprod()
 
@@ -104,7 +101,7 @@ def return_model(prices, method="mean_historical_return", **kwargs):
     elif method == "capm_return":
         return capm_return(prices, **kwargs)
     else:
-        raise NotImplementedError("Return model {} not implemented".format(method))
+        raise NotImplementedError(f"Return model {method} not implemented")
 
 
 def mean_historical_return(
@@ -135,11 +132,7 @@ def mean_historical_return(
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    if returns_data:
-        returns = prices
-    else:
-        returns = returns_from_prices(prices, log_returns)
-
+    returns = prices if returns_data else returns_from_prices(prices, log_returns)
     _check_returns(returns)
     if compounding:
         return (1 + returns).prod() ** (frequency / returns.count()) - 1
@@ -182,11 +175,7 @@ def ema_historical_return(
         warnings.warn("prices are not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
 
-    if returns_data:
-        returns = prices
-    else:
-        returns = returns_from_prices(prices, log_returns)
-
+    returns = prices if returns_data else returns_from_prices(prices, log_returns)
     _check_returns(returns)
     if compounding:
         return (1 + returns.ewm(span=span).mean().iloc[-1]) ** frequency - 1

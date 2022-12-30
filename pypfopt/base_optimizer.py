@@ -45,10 +45,7 @@ class BaseOptimizer:
         :type tickers: list
         """
         self.n_assets = n_assets
-        if tickers is None:
-            self.tickers = list(range(n_assets))
-        else:
-            self.tickers = tickers
+        self.tickers = list(range(n_assets)) if tickers is None else tickers
         self._risk_free_rate = None
         # Outputs
         self.weights = None
@@ -181,7 +178,7 @@ class BaseConvexOptimizer(BaseOptimizer):
         self._opt = None
         self._solver = solver
         self._verbose = verbose
-        self._solver_options = solver_options if solver_options else {}
+        self._solver_options = solver_options or {}
         self._map_bounds_to_constraints(weight_bounds)
 
     def _map_bounds_to_constraints(self, test_bounds):
@@ -236,12 +233,13 @@ class BaseConvexOptimizer(BaseOptimizer):
                 arg for arg in _get_all_args(expr) if isinstance(arg, cp.Parameter)
             ]
             for param in params:
-                if param.name() == parameter_name and not is_defined:
-                    is_defined = True
-                elif param.name() == parameter_name and is_defined:
-                    raise exceptions.InstantiationError(
-                        "Parameter name defined multiple times"
-                    )
+                if param.name() == parameter_name:
+                    if is_defined:
+                        raise exceptions.InstantiationError(
+                            "Parameter name defined multiple times"
+                        )
+                    else:
+                        is_defined = True
         return is_defined
 
     def update_parameter_value(self, parameter_name: str, new_value: float) -> None:
@@ -277,14 +275,14 @@ class BaseConvexOptimizer(BaseOptimizer):
                 self._initial_objective = self._objective.id
                 self._initial_constraint_ids = {const.id for const in self._constraints}
             else:
-                if not self._objective.id == self._initial_objective:
+                if self._objective.id != self._initial_objective:
                     raise exceptions.InstantiationError(
                         "The objective function was changed after the initial optimization. "
                         "Please create a new instance instead."
                     )
 
                 constr_ids = {const.id for const in self._constraints}
-                if not constr_ids == self._initial_constraint_ids:
+                if constr_ids != self._initial_constraint_ids:
                     raise exceptions.InstantiationError(
                         "The constraints were changed after the initial optimization. "
                         "Please create a new instance instead."
@@ -297,9 +295,7 @@ class BaseConvexOptimizer(BaseOptimizer):
             raise exceptions.OptimizationError from e
 
         if self._opt.status not in {"optimal", "optimal_inaccurate"}:
-            raise exceptions.OptimizationError(
-                "Solver status: {}".format(self._opt.status)
-            )
+            raise exceptions.OptimizationError(f"Solver status: {self._opt.status}")
         self.weights = self._w.value.round(16) + 0.0  # +0.0 removes signed zero
         return self._make_output_weights()
 

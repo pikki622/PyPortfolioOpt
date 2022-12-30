@@ -146,8 +146,7 @@ class EfficientSemivariance(EfficientFrontier):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        update_existing_parameter = self.is_parameter_defined("risk_aversion")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("risk_aversion"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("risk_aversion", risk_aversion)
         else:
@@ -181,8 +180,9 @@ class EfficientSemivariance(EfficientFrontier):
         :return: asset weights for the efficient risk portfolio
         :rtype: OrderedDict
         """
-        update_existing_parameter = self.is_parameter_defined("target_semivariance")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined(
+            "target_semivariance"
+        ):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value(
                 "target_semivariance", target_semideviation ** 2
@@ -229,12 +229,10 @@ class EfficientSemivariance(EfficientFrontier):
                 "target_return must be lower than the largest expected return"
             )
 
-        update_existing_parameter = self.is_parameter_defined("target_return")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("target_return"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_return", target_return)
         else:
-
             p = cp.Variable(self._T, nonneg=True)
             n = cp.Variable(self._T, nonneg=True)
             self._objective = cp.sum(cp.square(n))

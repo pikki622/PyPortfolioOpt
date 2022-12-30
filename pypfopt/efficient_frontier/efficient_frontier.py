@@ -104,9 +104,12 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         else:  # use integer labels
             tickers = list(range(num_assets))
 
-        if expected_returns is not None and cov_matrix is not None:
-            if cov_matrix.shape != (num_assets, num_assets):
-                raise ValueError("Covariance matrix does not match expected returns")
+        if (
+            expected_returns is not None
+            and cov_matrix is not None
+            and cov_matrix.shape != (num_assets, num_assets)
+        ):
+            raise ValueError("Covariance matrix does not match expected returns")
 
         super().__init__(
             len(tickers),
@@ -156,11 +159,12 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
             )
             returns_df = returns_df.dropna(axis=0, how="any")
 
-        if self.expected_returns is not None:
-            if returns_df.shape[1] != len(self.expected_returns):
-                raise ValueError(
-                    "returns columns do not match expected_returns. Please check your tickers."
-                )
+        if self.expected_returns is not None and returns_df.shape[1] != len(
+            self.expected_returns
+        ):
+            raise ValueError(
+                "returns columns do not match expected_returns. Please check your tickers."
+            )
 
         return returns_df
 
@@ -221,10 +225,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
 
         res = self._solve_cvxpy_opt_problem()
 
-        if return_value:
-            return -self._opt.value
-        else:
-            return res
+        return -self._opt.value if return_value else res
 
     def max_sharpe(self, risk_free_rate=0.02):
         """
@@ -310,8 +311,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
         if risk_aversion <= 0:
             raise ValueError("risk aversion coefficient must be greater than zero")
 
-        update_existing_parameter = self.is_parameter_defined("risk_aversion")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("risk_aversion"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("risk_aversion", risk_aversion)
         else:
@@ -355,8 +355,9 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 )
             )
 
-        update_existing_parameter = self.is_parameter_defined("target_variance")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined(
+            "target_variance"
+        ):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_variance", target_volatility ** 2)
         else:
@@ -398,8 +399,7 @@ class EfficientFrontier(base_optimizer.BaseConvexOptimizer):
                 "target_return must be lower than the maximum possible return"
             )
 
-        update_existing_parameter = self.is_parameter_defined("target_return")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("target_return"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_return", target_return)
         else:

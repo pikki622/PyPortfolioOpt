@@ -81,7 +81,7 @@ def fix_nonpositive_semidefinite(matrix, fix_method="spectral"):
         min_eig = np.min(q)
         fixed_matrix = matrix - 1.1 * min_eig * np.eye(len(matrix))
     else:
-        raise NotImplementedError("Method {} not implemented".format(fix_method))
+        raise NotImplementedError(f"Method {fix_method} not implemented")
 
     if not _is_positive_semidefinite(fixed_matrix):  # pragma: no cover
         warnings.warn(
@@ -124,11 +124,11 @@ def risk_matrix(prices, method="sample_cov", **kwargs):
     """
     if method == "sample_cov":
         return sample_cov(prices, **kwargs)
-    elif method == "semicovariance" or method == "semivariance":
+    elif method in ["semicovariance", "semivariance"]:
         return semicovariance(prices, **kwargs)
     elif method == "exp_cov":
         return exp_cov(prices, **kwargs)
-    elif method == "ledoit_wolf" or method == "ledoit_wolf_constant_variance":
+    elif method in ["ledoit_wolf", "ledoit_wolf_constant_variance"]:
         return CovarianceShrinkage(prices, **kwargs).ledoit_wolf()
     elif method == "ledoit_wolf_single_factor":
         return CovarianceShrinkage(prices, **kwargs).ledoit_wolf(
@@ -141,7 +141,7 @@ def risk_matrix(prices, method="sample_cov", **kwargs):
     elif method == "oracle_approximating":
         return CovarianceShrinkage(prices, **kwargs).oracle_approximating()
     else:
-        raise NotImplementedError("Risk model {} not implemented".format(method))
+        raise NotImplementedError(f"Risk model {method} not implemented")
 
 
 def sample_cov(prices, returns_data=False, frequency=252, log_returns=False, **kwargs):
@@ -164,10 +164,7 @@ def sample_cov(prices, returns_data=False, frequency=252, log_returns=False, **k
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    if returns_data:
-        returns = prices
-    else:
-        returns = returns_from_prices(prices, log_returns)
+    returns = prices if returns_data else returns_from_prices(prices, log_returns)
     return fix_nonpositive_semidefinite(
         returns.cov() * frequency, kwargs.get("fix_method", "spectral")
     )
@@ -207,10 +204,7 @@ def semicovariance(
     if not isinstance(prices, pd.DataFrame):
         warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
-    if returns_data:
-        returns = prices
-    else:
-        returns = returns_from_prices(prices, log_returns)
+    returns = prices if returns_data else returns_from_prices(prices, log_returns)
     drops = np.fmin(returns - benchmark, 0)
     T = drops.shape[0]
     return fix_nonpositive_semidefinite(
@@ -264,10 +258,7 @@ def exp_cov(
         warnings.warn("data is not in a dataframe", RuntimeWarning)
         prices = pd.DataFrame(prices)
     assets = prices.columns
-    if returns_data:
-        returns = prices
-    else:
-        returns = returns_from_prices(prices, log_returns)
+    returns = prices if returns_data else returns_from_prices(prices, log_returns)
     N = len(assets)
 
     # Loop over matrix, filling entries with the pairwise exp cov
@@ -299,15 +290,12 @@ def min_cov_determinant(
     # Extra dependency
     try:
         import sklearn.covariance
-    except (ModuleNotFoundError, ImportError):
+    except ImportError:
         raise ImportError("Please install scikit-learn via pip or poetry")
 
     assets = prices.columns
 
-    if returns_data:
-        X = prices
-    else:
-        X = returns_from_prices(prices, log_returns)
+    X = prices if returns_data else returns_from_prices(prices, log_returns)
     # X = np.nan_to_num(X.values)
     X = X.dropna().values
     raw_cov_array = sklearn.covariance.fast_mcd(X, random_state=random_state)[1]
@@ -382,7 +370,7 @@ class CovarianceShrinkage:
             from sklearn import covariance
 
             self.covariance = covariance
-        except (ModuleNotFoundError, ImportError):  # pragma: no cover
+        except ImportError:
             raise ImportError("Please install scikit-learn via pip or poetry")
 
         if not isinstance(prices, pd.DataFrame):
@@ -455,7 +443,7 @@ class CovarianceShrinkage:
             shrunk_cov, self.delta = self._ledoit_wolf_constant_correlation()
         else:
             raise NotImplementedError(
-                "Shrinkage target {} not recognised".format(shrinkage_target)
+                f"Shrinkage target {shrinkage_target} not recognised"
             )
 
         return self._format_and_annualize(shrunk_cov)

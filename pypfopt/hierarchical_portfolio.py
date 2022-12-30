@@ -119,7 +119,7 @@ class HRPOpt(base_optimizer.BaseOptimizer):
         w = pd.Series(1, index=ordered_tickers)
         cluster_items = [ordered_tickers]  # initialize all items in one cluster
 
-        while len(cluster_items) > 0:
+        while cluster_items:
             cluster_items = [
                 i[j:k]
                 for i in cluster_items

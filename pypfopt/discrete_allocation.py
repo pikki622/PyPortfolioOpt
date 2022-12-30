@@ -103,10 +103,10 @@ class DiscreteAllocation:
         :return: rmse error
         :rtype: float
         """
-        portfolio_val = 0
-        for ticker, num in self.allocation.items():
-            portfolio_val += num * self.latest_prices[ticker]
-
+        portfolio_val = sum(
+            num * self.latest_prices[ticker]
+            for ticker, num in self.allocation.items()
+        )
         sse = 0  # sum of square errors
         for ticker, weight in self.weights:
             if ticker in self.allocation:
@@ -264,7 +264,7 @@ class DiscreteAllocation:
                 of funds leftover.
         :rtype: (dict, float)
         """
-        if any([w < 0 for _, w in self.weights]):
+        if any(w < 0 for _, w in self.weights):
             longs = {t: w for t, w in self.weights if w >= 0}
             shorts = {t: -w for t, w in self.weights if w < 0}
 
@@ -321,7 +321,7 @@ class DiscreteAllocation:
         opt = cp.Problem(cp.Minimize(objective), constraints)
 
         if solver is not None and solver not in cp.installed_solvers():
-            raise NameError("Solver {} is not installed. ".format(solver))
+            raise NameError(f"Solver {solver} is not installed. ")
         opt.solve(solver=solver)
 
         if opt.status not in {"optimal", "optimal_inaccurate"}:  # pragma: no cover

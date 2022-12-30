@@ -60,8 +60,8 @@ def test_cla_custom_bounds():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cla.tickers)
     np.testing.assert_almost_equal(cla.weights.sum(), 1)
-    assert (0.01 <= cla.weights[::2]).all() and (cla.weights[::2] <= 0.13).all()
-    assert (0.02 <= cla.weights[1::2]).all() and (cla.weights[1::2] <= 0.11).all()
+    assert (cla.weights[::2] >= 0.01).all() and (cla.weights[::2] <= 0.13).all()
+    assert (cla.weights[1::2] >= 0.02).all() and (cla.weights[1::2] <= 0.11).all()
     # Test polymorphism of the weight_bounds param.
     bounds2 = ([bounds[0][0], bounds[1][0]] * 10, [bounds[0][1], bounds[1][1]] * 10)
     cla2 = CLA(*setup_cla(data_only=True), weight_bounds=bounds2)
@@ -145,7 +145,7 @@ def test_cla_efficient_frontier():
     cla.efficient_frontier()
 
     mu, sigma, weights = cla.efficient_frontier()
-    assert len(mu) == len(sigma) and len(sigma) == len(weights)
+    assert len(mu) == len(sigma) == len(weights)
     # higher return = higher risk
     assert sigma[-1] < sigma[0] and mu[-1] < mu[0]
     assert weights[0].shape == (20, 1)

@@ -148,8 +148,7 @@ class EfficientCDaR(EfficientFrontier):
         :rtype: OrderedDict
         """
 
-        update_existing_parameter = self.is_parameter_defined("target_return")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("target_return"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_return", target_return)
             return self._solve_cvxpy_opt_problem()
@@ -176,8 +175,7 @@ class EfficientCDaR(EfficientFrontier):
         :rtype: OrderedDict
         """
 
-        update_existing_parameter = self.is_parameter_defined("target_cdar")
-        if update_existing_parameter:
+        if update_existing_parameter := self.is_parameter_defined("target_cdar"):
             self._validate_market_neutral(market_neutral)
             self.update_parameter_value("target_cdar", target_cdar)
         else:

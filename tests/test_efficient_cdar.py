@@ -26,7 +26,7 @@ def test_cdar_example():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
@@ -64,7 +64,7 @@ def test_es_return_sample():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
@@ -187,7 +187,7 @@ def test_min_cdar_different_solver():
     assert set(w.keys()) == set(cd.tickers)
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
 
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
     test_performance = (0.14798, 0.056433)
     np.testing.assert_allclose(
         cd.portfolio_performance(), test_performance, rtol=1e-2, atol=1e-2
@@ -218,7 +218,7 @@ def test_min_cdar_L2_reg():
     assert isinstance(weights, dict)
     assert set(weights.keys()) == set(cd.tickers)
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in weights.values()])
+    assert all(i >= -1e-5 for i in weights.values())
 
     cd2 = setup_efficient_cdar()
     cd2.min_cdar()
@@ -277,10 +277,7 @@ def test_min_cdar_sector_constraints():
     weights = cd.min_cdar()
 
     for sector in list(set().union(sector_upper, sector_lower)):
-        sector_sum = 0
-        for t, v in weights.items():
-            if sector_mapper[t] == sector:
-                sector_sum += v
+        sector_sum = sum(v for t, v in weights.items() if sector_mapper[t] == sector)
         assert sector_sum <= sector_upper.get(sector, 1) + 1e-5
         assert sector_sum >= sector_lower.get(sector, 0) - 1e-5
 
@@ -292,7 +289,7 @@ def test_efficient_risk():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
@@ -370,7 +367,7 @@ def test_efficient_return():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
 
     np.testing.assert_allclose(
         cd.portfolio_performance(),
@@ -410,7 +407,7 @@ def test_efficient_return_L2_reg():
     assert isinstance(w, dict)
     assert set(w.keys()) == set(cd.tickers)
     np.testing.assert_almost_equal(cd.weights.sum(), 1)
-    assert all([i >= -1e-5 for i in w.values()])
+    assert all(i >= -1e-5 for i in w.values())
     np.testing.assert_allclose(
         cd.portfolio_performance(),
         (0.25, 0.101115),
